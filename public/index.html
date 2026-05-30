@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>《雨跌》☔️ - 股市版雨蝶</title>
+<style>
+:root {
+  --bg-deep: #0c1119;
+  --bg-card: rgba(15, 23, 42, 0.75);
+  --text-primary: #c8d6e5;
+  --text-dim: #6b7d99;
+  --accent-red: #ef4444;
+  --accent-green: #22c55e;
+  --accent-gold: #f59e0b;
+  --accent-blue: #3b82f6;
+  --rain: rgba(148, 163, 184, 0.15);
+  --border: rgba(148, 163, 184, 0.1);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html {
+  min-height: 100%;
+  background: var(--bg-deep);
+}
+body {
+  font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+canvas#rain {
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  pointer-events: none; z-index:0;
+}
+canvas#candles {
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  pointer-events: none; z-index:0; opacity:0.08;
+}
+.container {
+  position: relative; z-index:1;
+  display: flex; gap: 28px;
+  padding: 32px;
+  max-width: 1100px; width: 100%;
+  max-height: 100dvh;
+  backdrop-filter: blur(2px);
+}
+.player-card {
+  flex: 0 0 280px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px 24px;
+  backdrop-filter: blur(20px);
+  display: flex; flex-direction: column; align-items: center;
+  gap: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.player-card .tag-line {
+  font-size: 11px; letter-spacing: 3px; color: var(--text-dim);
+  text-transform: uppercase; margin-bottom: -12px;
+}
+.player-card .title {
+  font-size: 22px; font-weight: 700; letter-spacing: 2px;
+  background: linear-gradient(135deg, #94a3b8, #64748b);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.player-card .subtitle {
+  font-size: 12px; color: var(--accent-red); letter-spacing: 1px;
+}
+.progress-bar-wrap {
+  width: 100%; height: 8px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 999px; cursor: pointer; overflow: hidden;
+}
+.progress-bar {
+  height: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-red));
+  width: 0%; border-radius: 999px; transition: width 0.1s linear;
+}
+.time-row {
+  display: flex; justify-content: space-between;
+  width: 100%; font-size: 11px; color: var(--text-dim);
+  font-variant-numeric: tabular-nums; font-family: "SF Mono", "Consolas", monospace;
+}
+.controls {
+  display: flex; gap: 16px; align-items: center;
+}
+.control-btn {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  color: var(--text-primary); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; transition: all 0.2s;
+}
+.control-btn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.2); }
+.control-btn.play-btn {
+  width: 56px; height: 56px; font-size: 22px;
+  background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(239,68,68,0.2));
+  border-color: rgba(148,163,184,0.2);
+}
+.control-btn.play-btn:hover { transform: scale(1.05); }
+.k-line-decoration {
+  width: 100%; height: 48px; position: relative; margin-top: 4px;
+}
+.k-line-decoration .k-line {
+  position: absolute; bottom: 0; width: 4px; border-radius: 1px;
+  left: 50%; transform: translateX(-50%);
+}
+.k-line-decoration .k-line:nth-child(1) { height:28px; left:calc(50% - 16px); background:var(--accent-red); }
+.k-line-decoration .k-line:nth-child(2) { height:20px; left:calc(50% - 8px); background:var(--accent-green); }
+.k-line-decoration .k-line:nth-child(3) { height:34px; left:50%; background:var(--accent-red); }
+.k-line-decoration .k-line:nth-child(4) { height:24px; left:calc(50% + 8px); background:var(--accent-green); }
+.k-line-decoration .k-line:nth-child(5) { height:16px; left:calc(50% + 16px); background:var(--accent-red); }
+.k-line-decoration .k-line:nth-child(6) { height:30px; left:calc(50% + 24px); background:var(--accent-red); }
+.k-line-decoration .k-line:nth-child(7) { height:22px; left:calc(50% + 32px); background:var(--accent-green); }
+
+.lyrics-panel {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px 28px;
+  backdrop-filter: blur(20px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  max-height: 520px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.lyrics-panel::-webkit-scrollbar { width: 4px; }
+.lyrics-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+.lyric-line {
+  padding: 10px 16px; margin: 2px 0; border-radius: 8px;
+  font-size: 18px; line-height: 1.8; letter-spacing: 1px;
+  color: var(--text-dim);
+  transition: all 0.35s ease;
+  border-left: 3px solid transparent;
+}
+.lyric-line.active {
+  color: #e2e8f0;
+  background: rgba(59,130,246,0.08);
+  border-left-color: var(--accent-blue);
+  font-weight: 600;
+  text-shadow: 0 0 20px rgba(59,130,246,0.3);
+}
+.lyric-line .highlight-red { color: var(--accent-red); font-weight: 600; }
+.lyric-line .highlight-green { color: var(--accent-green); font-weight: 600; }
+.lyric-line .highlight-gold { color: var(--accent-gold); font-weight: 600; }
+.time-stamp {
+  font-size: 10px; color: var(--text-dim);
+  font-family: "SF Mono", "Consolas", monospace;
+  margin-right: 12px; opacity: 0.5;
+}
+
+@media (max-width: 800px) {
+  body {
+    align-items: stretch;
+    justify-content: flex-start;
+    overflow: hidden;
+  }
+  canvas#candles { opacity: 0.06; }
+  .container {
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    height: 100dvh;
+    max-height: none;
+    padding: calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom));
+    overflow: hidden;
+  }
+  .player-card {
+    flex: 0 0 auto;
+    width: 100%;
+    border-radius: 16px;
+    padding: 16px 16px 14px;
+    gap: 12px;
+  }
+  .player-card .tag-line {
+    font-size: 10px;
+    letter-spacing: 2px;
+    margin-bottom: -8px;
+  }
+  .player-card .title {
+    font-size: 28px;
+    line-height: 1.15;
+    letter-spacing: 1px;
+  }
+  .player-card .subtitle {
+    font-size: 13px;
+  }
+  .k-line-decoration {
+    height: 28px;
+    margin-top: 0;
+  }
+  .controls {
+    gap: 18px;
+    width: 100%;
+    justify-content: center;
+  }
+  .control-btn {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
+  .control-btn.play-btn {
+    width: 64px;
+    height: 64px;
+    font-size: 24px;
+  }
+  .lyrics-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    border-radius: 16px;
+    padding: 14px 10px 22px;
+  }
+  .lyric-line {
+    padding: 11px 12px;
+    margin: 1px 0;
+    font-size: 17px;
+    line-height: 1.65;
+    letter-spacing: 0;
+  }
+  .time-stamp {
+    display: block;
+    margin: 0 0 2px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 380px) {
+  .container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .player-card {
+    padding: 14px 14px 12px;
+    gap: 10px;
+  }
+  .player-card .title {
+    font-size: 25px;
+  }
+  .lyric-line {
+    font-size: 16px;
+    padding: 10px;
+  }
+}
+
+@media (max-height: 680px) and (max-width: 800px) {
+  .player-card {
+    gap: 8px;
+    padding-top: 12px;
+    padding-bottom: 10px;
+  }
+  .k-line-decoration {
+    display: none;
+  }
+  .control-btn.play-btn {
+    width: 58px;
+    height: 58px;
+  }
+}
+</style>
+</head>
+<body>
+<canvas id="candles"></canvas>
+<canvas id="rain"></canvas>
+
+<div class="container">
+  <div class="player-card">
+    <div class="tag-line">原曲《雨蝶》</div>
+    <div class="title">雨跌☔️📉</div>
+    <div class="subtitle">钱包流泪到心碎</div>
+    <div class="k-line-decoration">
+      <div class="k-line"></div><div class="k-line"></div><div class="k-line"></div>
+      <div class="k-line"></div><div class="k-line"></div><div class="k-line"></div>
+      <div class="k-line"></div>
+    </div>
+    <div class="progress-bar-wrap" id="progressWrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="time-row">
+      <span id="currentTime">00:00</span>
+      <span id="totalTime">01:02</span>
+    </div>
+    <div class="controls">
+      <button class="control-btn" id="rewindBtn" title="后退10秒">⏪</button>
+      <button class="control-btn play-btn" id="playBtn">▶</button>
+      <button class="control-btn" id="forwardBtn" title="前进10秒">⏩</button>
+    </div>
+  </div>
+  <div class="lyrics-panel" id="lyricsPanel"></div>
+</div>
+
+<script>
+// RAIN CANVAS
+const rainCanvas = document.getElementById('rain');
+const rCtx = rainCanvas.getContext('2d');
+let rainDrops = [];
+function initRain() {
+  rainCanvas.width = window.innerWidth;
+  rainCanvas.height = window.innerHeight;
+  rainDrops = [];
+  for (let i = 0; i < 120; i++) {
+    rainDrops.push({
+      x: Math.random() * rainCanvas.width,
+      y: Math.random() * rainCanvas.height,
+      len: 8 + Math.random() * 20,
+      speed: 3 + Math.random() * 6,
+      opacity: 0.05 + Math.random() * 0.12
+    });
+  }
+}
+function drawRain() {
+  rCtx.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
+  for (let d of rainDrops) {
+    rCtx.beginPath();
+    rCtx.moveTo(d.x, d.y);
+    rCtx.lineTo(d.x - 1, d.y + d.len);
+    rCtx.strokeStyle = `rgba(148,163,184,${d.opacity})`;
+    rCtx.lineWidth = 1;
+    rCtx.stroke();
+    d.y += d.speed;
+    if (d.y > rainCanvas.height) { d.y = -d.len; d.x = Math.random() * rainCanvas.width; }
+  }
+  requestAnimationFrame(drawRain);
+}
+
+// CANDLE BACKGROUND
+const candleCanvas = document.getElementById('candles');
+const cCtx = candleCanvas.getContext('2d');
+function drawCandles() {
+  candleCanvas.width = window.innerWidth;
+  candleCanvas.height = window.innerHeight;
+  const w = candleCanvas.width, h = candleCanvas.height;
+  cCtx.clearRect(0,0,w,h);
+  const cols = Math.floor(w / 12);
+  for (let i = 0; i < cols; i++) {
+    const x = i * 12 + 6;
+    const high = 20 + Math.random() * (h - 60);
+    const low = 10 + Math.random() * (high - 20);
+    const open = low + Math.random() * (high - low);
+    const close = low + Math.random() * (high - low);
+    const isGreen = close > open;
+    const color = isGreen ? '34,197,94' : '239,68,68';
+    cCtx.strokeStyle = `rgba(${color},1)`;
+    cCtx.lineWidth = 1;
+    cCtx.beginPath(); cCtx.moveTo(x, low); cCtx.lineTo(x, high); cCtx.stroke();
+    cCtx.fillStyle = `rgba(${color},1)`;
+    const bodyTop = Math.min(open, close), bodyH = Math.abs(close - open) || 1;
+    cCtx.fillRect(x-2, bodyTop, 4, bodyH);
+  }
+}
+
+// AUDIO & LYRICS
+const lyricsData = [
+  { start: 0.0, end: 9.339,
+    text: '<span class="highlight-red">买到跌破位</span> 也别去怪谁 只因为想得太美' },
+  { start: 10.439, end: 17.439,
+    text: '就算从高位跌到底 <span class="highlight-red">全都亏</span> 也无所谓' },
+  { start: 19.160, end: 26.160,
+    text: '我<span class="highlight-red">追涨杀跌</span> 怕把<span class="highlight-green">你卖飞</span> 最怕<span class="highlight-gold">牛市</span><span class="highlight-red">一去不回</span>' },
+  { start: 27.339, end: 34.000,
+    text: '<span class="highlight-gold">主力</span><span class="highlight-red">套</span>过我骗过我 给过我只是安慰' },
+  { start: 35.439, end: 42.000,
+    text: '我向你飞 欲<span class="highlight-gold">满仓去追</span> 所有的<span class="highlight-green">利好</span>把我包围' },
+  { start: 43.500, end: 46.000,
+    text: '我向你飞 多高都<span class="highlight-green">不贵</span> 虽然<span class="highlight-red">洗盘</span>中<span class="highlight-red">踏空</span>和泪' },
+  { start: 46.000, end: 53.000,
+    text: '我向你追 却<span class="highlight-red">不断的亏</span> 哪怕你<span class="highlight-red">无量</span>我也无悔' },
+  { start: 53.000, end: 63.000,
+    text: '<span class="highlight-green">涨势那么累</span> <span class="highlight-red">拉高跳水</span> <span class="highlight-red">被套</span>的感觉' }
+];
+
+const audio = new Audio('雨跌股票版.mp3');
+audio.preload = 'auto';
+
+const playBtn = document.getElementById('playBtn');
+const progressBar = document.getElementById('progressBar');
+const progressWrap = document.getElementById('progressWrap');
+const currentTimeEl = document.getElementById('currentTime');
+const totalTimeEl = document.getElementById('totalTime');
+const lyricsPanel = document.getElementById('lyricsPanel');
+
+function fmtTime(s) {
+  const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+// Build lyrics
+lyricsData.forEach((l, i) => {
+  const div = document.createElement('div');
+  div.className = 'lyric-line';
+  div.id = `lyric-${i}`;
+  div.innerHTML = `<span class="time-stamp">${fmtTime(l.start)}</span>${l.text}`;
+  div.addEventListener('click', () => { audio.currentTime = l.start; });
+  lyricsPanel.appendChild(div);
+});
+
+let activeIdx = -1;
+function updateLyrics() {
+  const t = audio.currentTime;
+  let newIdx = -1;
+  for (let i = lyricsData.length-1; i >= 0; i--) {
+    if (t >= lyricsData[i].start - 0.15) { newIdx = i; break; }
+  }
+  if (newIdx !== activeIdx) {
+    if (activeIdx >= 0) document.getElementById(`lyric-${activeIdx}`).classList.remove('active');
+    if (newIdx >= 0) {
+      const el = document.getElementById(`lyric-${newIdx}`);
+      el.classList.add('active');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    activeIdx = newIdx;
+  }
+}
+
+audio.addEventListener('timeupdate', () => {
+  if (audio.duration) {
+    progressBar.style.width = (audio.currentTime / audio.duration * 100) + '%';
+    currentTimeEl.textContent = fmtTime(audio.currentTime);
+  }
+  updateLyrics();
+});
+
+audio.addEventListener('loadedmetadata', () => {
+  totalTimeEl.textContent = fmtTime(audio.duration);
+});
+
+progressWrap.addEventListener('click', (e) => {
+  if (!audio.duration) return;
+  const rect = progressWrap.getBoundingClientRect();
+  audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+});
+
+playBtn.addEventListener('click', () => {
+  if (audio.paused) { audio.play(); playBtn.textContent = '⏸'; }
+  else { audio.pause(); playBtn.textContent = '▶'; }
+});
+audio.addEventListener('ended', () => { playBtn.textContent = '▶'; activeIdx = -1; });
+
+document.getElementById('rewindBtn').addEventListener('click', () => {
+  audio.currentTime = Math.max(0, audio.currentTime - 10);
+});
+document.getElementById('forwardBtn').addEventListener('click', () => {
+  audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 10);
+});
+
+// Keyboard
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') { e.preventDefault(); playBtn.click(); }
+  if (e.code === 'ArrowLeft') { audio.currentTime = Math.max(0, audio.currentTime - 5); }
+  if (e.code === 'ArrowRight') { audio.currentTime = Math.min(audio.duration||0, audio.currentTime + 5); }
+});
+
+window.addEventListener('resize', () => { initRain(); drawCandles(); });
+initRain(); drawRain(); drawCandles();
+</script>
+</body>
+</html>
