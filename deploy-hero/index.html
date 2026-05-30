@@ -324,6 +324,10 @@
     color:var(--text-dim);
     transition:all 0.45s var(--ease-smooth);
     width:100%;letter-spacing:-0.01em;
+    display:block;text-align:center;
+    white-space:nowrap;
+    transform:scaleX(var(--lyric-fit-scale,1));
+    transform-origin:center;
   }
   .lyric-line .time-dot{
     position:absolute;left:-8px;top:50%;transform:translateY(-50%);
@@ -342,6 +346,7 @@
   }
   .lyric-line.active .text{
     color:var(--gold-bright);
+    font-size:var(--active-lyric-size,clamp(1.12rem,3vw,1.34rem));
     font-weight:600;
     text-shadow:0 0 28px rgba(212,168,83,0.3),
                 0 0 8px rgba(212,168,83,0.12);
@@ -361,8 +366,16 @@
     .header{padding:20px 4px 8px}
     .player-card{padding:14px 16px 16px;border-radius:20px}
     .lyrics-panel{margin-top:4px}
-    .lyric-line{padding:12px 16px;min-height:44px;border-radius:14px}
+    .lyrics-list{gap:20px;padding:8vh 0 14vh}
+    .lyric-line{padding:12px 8px;min-height:44px;border-radius:14px}
+    .lyric-line .text{
+      font-size:clamp(0.94rem,3.85vw,1.02rem);
+      letter-spacing:0;
+    }
     .lyric-line.active{transform:scale(1.01)}
+    .lyric-line.active .text{
+      font-size:var(--active-lyric-size,clamp(1.06rem,4.7vw,1.18rem));
+    }
     .album-art{width:44px;height:44px;border-radius:12px}
     .btn-play{width:42px;height:42px}
     .lyric-line .time-dot{left:-4px;width:4px;height:4px}
@@ -456,6 +469,47 @@ lyricsData.forEach((ly,i)=>{
   list.appendChild(el);
   lines.push({el,start:ly.start,end:ly.end});
 });
+
+function fitHeroLyrics(){
+  const isMobile=window.matchMedia('(max-width: 520px)').matches;
+  const vw=window.innerWidth;
+  const activeSize=isMobile
+    ? Math.max(17,Math.min(19,vw*0.047))
+    : Math.max(18,Math.min(22,vw*0.028));
+  let measure=document.getElementById('lyric-measure');
+  if(!measure){
+    measure=document.createElement('span');
+    measure.id='lyric-measure';
+    measure.style.cssText='position:fixed;left:-9999px;top:-9999px;white-space:nowrap;visibility:hidden;pointer-events:none;';
+    document.body.appendChild(measure);
+  }
+  lines.forEach(({el})=>{
+    const text=el.querySelector('.text');
+    text.style.removeProperty('--lyric-fit-scale');
+    text.style.removeProperty('--active-lyric-size');
+    if(!isMobile)return;
+    const cs=getComputedStyle(text);
+    measure.textContent=text.textContent;
+    measure.style.fontFamily=cs.fontFamily;
+    measure.style.fontWeight='600';
+    measure.style.letterSpacing='0px';
+    measure.style.fontSize=activeSize+'px';
+    const available=Math.max(1,text.clientWidth-4);
+    const natural=measure.getBoundingClientRect().width+4;
+    if(natural>available){
+      const ratio=available/natural;
+      const scale=Math.max(0.88,Math.min(1,ratio));
+      text.style.setProperty('--lyric-fit-scale',scale.toFixed(3));
+      if(ratio<0.88){
+        const target=Math.max(17,activeSize*ratio/0.88);
+        text.style.setProperty('--active-lyric-size',target.toFixed(2)+'px');
+      }
+    }
+  });
+}
+fitHeroLyrics();
+window.addEventListener('resize',fitHeroLyrics);
+if(document.fonts)document.fonts.ready.then(fitHeroLyrics);
 
 // ─────────── Audio Setup ───────────
 audio = new Audio('./真英雄_股市版.mp3');
