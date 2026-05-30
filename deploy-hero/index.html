@@ -307,15 +307,31 @@
   .lyrics-list{display:flex;flex-direction:column;gap:max(22px,4vh);padding:10vh 0 14vh}
 
   .lyric-line{
-    padding:14px 20px;border-radius:var(--radius-inner);
+    padding:12px 20px;border-radius:16px;
     cursor:pointer;transition:all 0.45s var(--ease-smooth);
     position:relative;
-    border:1.5px solid transparent;
+    border:1px solid transparent;
     touch-action:manipulation;
-    display:flex;align-items:center;
-    min-height:52px;
+    display:flex;align-items:center;justify-content:center;
+    min-height:48px;
     opacity:0.4;
     transform:scale(0.96);
+  }
+  .lyric-line::before{
+    content:'';position:absolute;
+    left:50%;top:50%;
+    width:min(82%,420px);height:36px;
+    border-radius:999px;
+    transform:translate(-50%,-50%) scaleX(0.92);
+    opacity:0;
+    background:
+      linear-gradient(90deg,transparent,rgba(212,168,83,0.12),transparent),
+      rgba(12,10,6,0.22);
+    border:1px solid rgba(212,168,83,0.14);
+    box-shadow:0 8px 24px rgba(0,0,0,0.18),
+               inset 0 1px 0 rgba(255,255,255,0.035);
+    transition:all 0.45s var(--ease-smooth);
+    pointer-events:none;
   }
   .lyric-line .text{
     font-family:var(--font-display);
@@ -337,12 +353,14 @@
   }
 
   .lyric-line.active{
-    opacity:1;transform:scale(1.02);
-    background:rgba(212,168,83,0.08);
-    border-color:rgba(212,168,83,0.25);
-    box-shadow:0 0 48px rgba(212,168,83,0.06),
-               0 4px 20px rgba(0,0,0,0.3),
-               inset 0 0 0 1px rgba(255,255,255,0.03);
+    opacity:1;transform:scale(1);
+    background:transparent;
+    border-color:transparent;
+    box-shadow:none;
+  }
+  .lyric-line.active::before{
+    opacity:1;
+    transform:translate(-50%,-50%) scaleX(1);
   }
   .lyric-line.active .text{
     color:var(--gold-bright);
@@ -350,6 +368,7 @@
     font-weight:600;
     text-shadow:0 0 28px rgba(212,168,83,0.3),
                 0 0 8px rgba(212,168,83,0.12);
+    position:relative;z-index:1;
   }
   .lyric-line.active .time-dot{
     background:var(--gold);
@@ -367,12 +386,22 @@
     .player-card{padding:14px 16px 16px;border-radius:20px}
     .lyrics-panel{margin-top:4px}
     .lyrics-list{gap:20px;padding:8vh 0 14vh}
-    .lyric-line{padding:12px 8px;min-height:44px;border-radius:14px}
+    .lyric-line{padding:9px 8px;min-height:38px;border-radius:12px}
+    .lyric-line::before{
+      width:min(74%,312px);
+      height:34px;
+      background:
+        linear-gradient(90deg,transparent,rgba(212,168,83,0.105),transparent),
+        rgba(10,8,5,0.18);
+      border-color:rgba(212,168,83,0.12);
+      box-shadow:0 6px 18px rgba(0,0,0,0.16),
+                 inset 0 1px 0 rgba(255,255,255,0.025);
+    }
     .lyric-line .text{
       font-size:clamp(0.94rem,3.85vw,1.02rem);
       letter-spacing:0;
     }
-    .lyric-line.active{transform:scale(1.01)}
+    .lyric-line.active{transform:scale(1)}
     .lyric-line.active .text{
       font-size:var(--active-lyric-size,clamp(1.06rem,4.7vw,1.18rem));
     }
