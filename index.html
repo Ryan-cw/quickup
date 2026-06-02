@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>江南 · 站在光里</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&family=Inter:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0a0e14;
+    --card-bg: rgba(20, 24, 32, 0.85);
+    --text: #c8ccd4;
+    --text-dim: #6b7280;
+    --accent-red: #ef4444;
+    --accent-green: #22c55e;
+    --accent-gold: #d4a853;
+    --lyric-active: #f0e6d3;
+    --lyric-inactive: rgba(200, 204, 212, 0.35);
+    --border: rgba(255, 255, 255, 0.06);
+    --glow-red: rgba(239, 68, 68, 0.15);
+    --glow-green: rgba(34, 197, 94, 0.12);
+    --glow-gold: rgba(212, 168, 83, 0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Serif SC', 'Inter', serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Background: Jiangnan rain meets market chart */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px),
+      radial-gradient(ellipse at 50% 18%, rgba(212,168,83,0.08), transparent 42%),
+      linear-gradient(180deg, rgba(8,13,20,0.2), rgba(4,9,12,0.86));
+    background-size: 72px 72px, 72px 72px, 100% 100%, 100% 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .jiangnan-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 18% 76%, rgba(34,197,94,0.12), transparent 34%),
+      radial-gradient(ellipse at 82% 70%, rgba(239,68,68,0.12), transparent 36%),
+      linear-gradient(180deg, rgba(10,14,20,0), rgba(5,12,14,0.72) 72%, rgba(3,8,9,0.96));
+  }
+  .rain-veil {
+    position: absolute;
+    inset: -12% -8%;
+    opacity: 0.26;
+    background:
+      repeating-linear-gradient(105deg, transparent 0 24px, rgba(210,224,220,0.12) 25px, transparent 27px),
+      repeating-linear-gradient(75deg, transparent 0 58px, rgba(212,168,83,0.08) 59px, transparent 61px);
+    animation: rain-drift 8s linear infinite;
+  }
+  .mist-band {
+    position: absolute;
+    left: -8%;
+    right: -8%;
+    top: 48%;
+    height: 26%;
+    opacity: 0.34;
+    filter: blur(22px);
+    background:
+      linear-gradient(90deg, transparent, rgba(204,216,208,0.11), transparent),
+      linear-gradient(100deg, transparent 8%, rgba(34,197,94,0.08) 28%, rgba(212,168,83,0.10) 50%, rgba(239,68,68,0.08) 72%, transparent 92%);
+    animation: mist-flow 18s ease-in-out infinite;
+  }
+  .river-reflection {
+    position: absolute;
+    left: -10%;
+    right: -10%;
+    bottom: -8%;
+    height: 34%;
+    opacity: 0.72;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.045) 0 1px, transparent 1px 14px),
+      radial-gradient(ellipse at 50% 100%, rgba(212,168,83,0.17), transparent 58%),
+      linear-gradient(90deg, rgba(34,197,94,0.12), rgba(212,168,83,0.13), rgba(239,68,68,0.11));
+    mask-image: linear-gradient(to top, rgba(0,0,0,0.95), transparent 82%);
+    -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.95), transparent 82%);
+    animation: water-breathe 9s ease-in-out infinite;
+  }
+  .river-reflection::before,
+  .river-reflection::after {
+    content: '';
+    position: absolute;
+    left: -5%;
+    width: 110%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(212,168,83,0.36), rgba(34,197,94,0.22), rgba(239,68,68,0.22), transparent);
+    transform: translateY(0);
+    animation: river-line 7s ease-in-out infinite;
+  }
+  .river-reflection::before { top: 32%; }
+  .river-reflection::after { top: 54%; animation-delay: -3.4s; opacity: 0.72; }
+  .market-thread {
+    position: absolute;
+    left: -4%;
+    right: -4%;
+    bottom: 18%;
+    height: 28%;
+    opacity: 0.28;
+    background:
+      linear-gradient(115deg, transparent 0 11%, rgba(239,68,68,0.36) 11.2% 11.5%, transparent 11.7% 24%, rgba(34,197,94,0.38) 24.2% 24.5%, transparent 24.7% 38%, rgba(212,168,83,0.34) 38.2% 38.5%, transparent 38.7% 100%),
+      linear-gradient(70deg, transparent 0 18%, rgba(34,197,94,0.22) 18.1% 18.5%, transparent 18.8% 62%, rgba(239,68,68,0.2) 62.2% 62.6%, transparent 62.8% 100%);
+    filter: blur(0.2px);
+    animation: market-drift 16s ease-in-out infinite;
+  }
+  @keyframes rain-drift {
+    from { transform: translate3d(-24px, -24px, 0); }
+    to { transform: translate3d(24px, 36px, 0); }
+  }
+  @keyframes mist-flow {
+    0%, 100% { transform: translateX(-2%) scaleY(1); opacity: 0.28; }
+    50% { transform: translateX(2%) scaleY(1.08); opacity: 0.42; }
+  }
+  @keyframes water-breathe {
+    0%, 100% { transform: translateY(0); opacity: 0.66; }
+    50% { transform: translateY(8px); opacity: 0.82; }
+  }
+  @keyframes river-line {
+    0%, 100% { transform: translateX(-3%) scaleX(0.86); opacity: 0.34; }
+    50% { transform: translateX(3%) scaleX(1); opacity: 0.72; }
+  }
+  @keyframes market-drift {
+    0%, 100% { transform: translateX(-1%); opacity: 0.18; }
+    50% { transform: translateX(1.5%); opacity: 0.32; }
+  }
+
+  /* Stock ticker line */
+  .ticker-wrap {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+      transparent, var(--accent-red), var(--accent-green),
+      var(--accent-red), var(--accent-gold), var(--accent-green),
+      transparent
+    );
+    opacity: 0.5;
+    z-index: 1;
+    animation: ticker-sweep 4s linear infinite;
+  }
+  @keyframes ticker-sweep {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* Main container */
+  .container {
+    position: relative;
+    z-index: 2;
+    width: 900px;
+    max-width: 95vw;
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+  }
+
+  /* Left panel: Cover art + Player */
+  .player-panel {
+    flex: 0 0 340px;
+    background: var(--card-bg);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    position: sticky;
+    top: 32px;
+  }
+
+  /* Cover art — Stock market prosperity theme */
+  .cover {
+    width: 220px;
+    height: 220px;
+    border-radius: 16px;
+    background: linear-gradient(180deg, #2d0808 0%, #140404 40%, #0a0101 100%);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(212,168,83,0.2);
+    user-select: none;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    background:
+      radial-gradient(ellipse at 50% 20%, rgba(239,68,68,0.25) 0%, transparent 60%),
+      radial-gradient(ellipse at 65% 55%, rgba(212,168,83,0.12) 0%, transparent 50%);
+    z-index: 0;
+    pointer-events: none;
+  }
+  .cover-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
+  /* Candle bounce animations */
+  @keyframes candle-bounce {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(1.08); transform-origin: bottom; }
+  }
+  @keyframes candle-bounce2 {
+    0%, 100% { transform: scaleY(1); }
+    40% { transform: scaleY(1.06); transform-origin: bottom; }
+    80% { transform: scaleY(0.97); transform-origin: bottom; }
+  }
+  @keyframes particle-glow {
+    0%, 100% { opacity: 0.15; }
+    50% { opacity: 0.85; }
+  }
+  @keyframes particle-glow2 {
+    0%, 100% { opacity: 0.1; }
+    30% { opacity: 0.7; }
+    70% { opacity: 0.25; }
+  }
+  @keyframes text-pulse {
+    0%, 100% { opacity: 0.75; }
+    50% { opacity: 1; }
+  }
+
+  /* Song info */
+  .song-info {
+    text-align: center;
+    width: 100%;
+  }
+  .song-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--lyric-active);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .song-artist {
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .progress-bar {
+    width: 100%;
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    cursor: pointer;
+    position: relative;
+    overflow: visible;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-gold), var(--accent-red));
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.1s linear;
+    position: relative;
+  }
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    background: var(--accent-gold);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .progress-bar:hover .progress-fill::after { opacity: 1; }
+
+  .time-display {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: 'Inter', monospace;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .ctrl-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-dim);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+  }
+  .ctrl-btn:hover { color: var(--lyric-active); }
+  .ctrl-btn.play-btn {
+    width: 52px;
+    height: 52px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+    color: var(--lyric-active);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .ctrl-btn.play-btn:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 24px var(--glow-gold);
+  }
+  .ctrl-btn svg { width: 20px; height: 20px; }
+  .ctrl-btn.play-btn svg { width: 22px; height: 22px; }
+
+  /* Right panel: Lyrics */
+  .lyrics-panel {
+    flex: 1;
+    min-width: 0;
+    height: 500px;
+    overflow: hidden;
+    position: relative;
+    border-radius: 24px;
+  }
+
+  .lyrics-scroll {
+    height: 100%;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    padding: 80px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .lyrics-scroll::-webkit-scrollbar { display: none; }
+
+  .lyric-line {
+    font-size: 16px;
+    font-weight: 300;
+    color: var(--lyric-inactive);
+    text-align: center;
+    transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    padding: 8px 16px;
+    border-radius: 8px;
+    letter-spacing: 1px;
+    line-height: 1.8;
+    white-space: nowrap;
+    transform: scaleX(var(--lyric-fit-scale, 1));
+    transform-origin: center;
+  }
+  .lyric-line.active {
+    color: var(--lyric-active);
+    font-size: var(--active-font-size, 22px);
+    font-weight: 600;
+    text-shadow: 0 0 30px rgba(212,168,83,0.25);
+    background: linear-gradient(90deg, transparent, rgba(212,168,83,0.06), transparent);
+  }
+  .lyric-line.past {
+    color: rgba(200, 204, 212, 0.18);
+  }
+
+  /* Candlestick decorations */
+  .candle-deco {
+    position: fixed;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.06;
+  }
+  .candle-deco.top-right {
+    top: 10%; right: 8%;
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+  }
+  .candle-deco.bottom-left {
+    bottom: 12%; left: 8%;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  .candle {
+    width: 8px;
+    border-radius: 2px;
+    position: relative;
+  }
+  .candle.green { background: #22c55e; }
+  .candle.red { background: #ef4444; }
+  .candle::before {
+    content: '';
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    height: 10px;
+    background: inherit;
+  }
+  .candle::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    height: 10px;
+    background: inherit;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .container {
+      flex-direction: column;
+      gap: 18px;
+      width: calc(100vw - 10px);
+      max-width: 520px;
+      padding: 18px 0;
+    }
+    .player-panel {
+      flex: none;
+      width: 100%;
+      position: static;
+      padding: 24px;
+    }
+    .lyrics-panel {
+      width: 100%;
+      height: 350px;
+      border-radius: 18px;
+    }
+    .lyrics-scroll {
+      padding: 60px 4px;
+      gap: 18px;
+    }
+    .lyric-line {
+      width: 100%;
+      padding: 8px 2px;
+      font-size: clamp(14px, 3.72vw, 15.5px);
+      letter-spacing: 0.15px;
+      line-height: 1.65;
+    }
+    .lyric-line.active {
+      font-size: var(--active-font-size, clamp(17px, 4.65vw, 19px)) !important;
+      letter-spacing: 0;
+    }
+    .cover { width: 160px; height: 160px; }
+  }
+
+  @media (max-width: 380px) {
+    .container {
+      width: calc(100vw - 4px);
+    }
+    .lyrics-scroll {
+      padding-left: 0;
+      padding-right: 0;
+    }
+    .lyric-line {
+      font-size: clamp(13.5px, 3.58vw, 14.5px);
+      transform-origin: center;
+    }
+    .lyric-line.active {
+      font-size: var(--active-font-size, clamp(16.5px, 4.42vw, 18px)) !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="jiangnan-bg">
+  <div class="rain-veil"></div>
+  <div class="mist-band"></div>
+  <div class="market-thread"></div>
+  <div class="river-reflection"></div>
+</div>
+
+<div class="ticker-wrap"></div>
+
+<div class="candle-deco top-right">
+  <div class="candle green" style="height:50px"></div>
+  <div class="candle red" style="height:36px"></div>
+  <div class="candle green" style="height:62px"></div>
+  <div class="candle red" style="height:28px"></div>
+  <div class="candle green" style="height:44px"></div>
+  <div class="candle green" style="height:55px"></div>
+  <div class="candle red" style="height:32px"></div>
+</div>
+<div class="candle-deco bottom-left">
+  <div class="candle red" style="height:42px"></div>
+  <div class="candle green" style="height:58px"></div>
+  <div class="candle red" style="height:30px"></div>
+  <div class="candle green" style="height:48px"></div>
+  <div class="candle red" style="height:38px"></div>
+  <div class="candle green" style="height:54px"></div>
+  <div class="candle green" style="height:46px"></div>
+</div>
+
+<div class="container">
+  <div class="player-panel">
+    <div class="cover">
+      <svg class="cover-svg" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="goldGlow">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="redGlow">
+            <feGaussianBlur stdDeviation="1.5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <linearGradient id="trendGrad" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0%" stop-color="#ef4444" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#fbbf24" stop-opacity="0.8"/>
+          </linearGradient>
+        </defs>
+
+        <!-- Chart grid -->
+        <line x1="10" y1="80" x2="210" y2="80" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <line x1="10" y1="110" x2="210" y2="110" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <line x1="10" y1="140" x2="210" y2="140" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <line x1="10" y1="60" x2="210" y2="60" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/>
+
+        <!-- Upward trend line -->
+        <polyline points="22,145 42,138 62,140 82,120 102,115 122,100 142,95 162,80 182,72 202,60"
+                  fill="none" stroke="url(#trendGrad)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+        <!-- Candlesticks: all bullish (red) — limit-up market -->
+        <g class="candle-g" style="animation: candle-bounce 3s ease-in-out infinite">
+          <line x1="22" y1="152" x2="22" y2="135" stroke="#ef4444" stroke-width="1.5"/>
+          <rect x="17" y="138" width="10" height="8" fill="#ef4444" rx="1.5"/>
+        </g>
+        <g class="candle-g" style="animation: candle-bounce2 2.8s ease-in-out 0.3s infinite">
+          <line x1="42" y1="145" x2="42" y2="128" stroke="#ef4444" stroke-width="1.5"/>
+          <rect x="37" y="131" width="10" height="9" fill="#ef4444" rx="1.5"/>
+        </g>
+        <g class="candle-g" style="animation: candle-bounce 3.2s ease-in-out 0.6s infinite">
+          <line x1="62" y1="148" x2="62" y2="130" stroke="#ef4444" stroke-width="1.5"/>
+          <rect x="57" y="133" width="10" height="8" fill="#ef4444" rx="1.5"/>
+        </g>
+        <g class="candle-g" style="animation: candle-bounce2 2.6s ease-in-out 0.2s infinite">
+          <line x1="82" y1="135" x2="82" y2="108" stroke="#ef4444" stroke-width="1.5"/>
+          <rect x="77" y="110" width="10" height="14" fill="#ef4444" rx="1.5"/>
+        </g>
+        <g class="candle-g" style="animation: candle-bounce 3.5s ease-in-out 0.9s infinite">
+          <line x1="102" y1="122" x2="102" y2="105" stroke="#ef4444" stroke-width="1.5"/>
+          <rect x="97" y="108" width="10" height="10" fill="#ef4444" rx="1.5"/>
+        </g>
+        <g class="candle-g" style="animation: candle-bounce2 3s ease-in-out 0.4s infinite">
+          <line x1="122" y1="110" x2="122" y2="88" stroke="#ef4444" stroke-width="1.5"/>
+          <rect x="117" y="92" width="10" height="12" fill="#ef4444" rx="1.5"/>
+        </g>
+        <g class="candle-g" style="animation: candle-bounce 2.9s ease-in-out 0.7s infinite">
+          <line x1="142" y1="108" x2="142" y2="83" stroke="#ef4444" stroke-width="1.5"/>
+          <rect x="137" y="86" width="10" height="11" fill="#ef4444" rx="1.5"/>
+        </g>
+        <g class="candle-g" style="animation: candle-bounce2 3.1s ease-in-out 0.5s infinite">
+          <line x1="162" y1="95" x2="162" y2="68" stroke="#ef4444" stroke-width="1.5"/>
+          <rect x="157" y="70" width="10" height="16" fill="#ef4444" rx="1.5"/>
+        </g>
+        <g class="candle-g" style="animation: candle-bounce 3.3s ease-in-out 0.1s infinite">
+          <line x1="182" y1="82" x2="182" y2="58" stroke="#ef4444" stroke-width="1.5"/>
+          <rect x="177" y="61" width="10" height="13" fill="#ef4444" rx="1.5"/>
+        </g>
+        <g class="candle-g" style="animation: candle-bounce2 2.7s ease-in-out 0.8s infinite">
+          <line x1="200" y1="72" x2="200" y2="42" stroke="#fbbf24" stroke-width="1.5"/>
+          <rect x="195" y="45" width="10" height="17" fill="#fbbf24" rx="1.5"/>
+          <text x="200" y="36" text-anchor="middle" font-size="9" fill="#fbbf24" filter="url(#goldGlow)">★</text>
+        </g>
+
+        <!-- Golden particles -->
+        <circle cx="30" cy="110" r="1.5" fill="#d4a853" style="animation: particle-glow 2s ease-in-out 0s infinite"/>
+        <circle cx="55" cy="95" r="1" fill="#fbbf24" style="animation: particle-glow2 2.5s ease-in-out 0.3s infinite"/>
+        <circle cx="80" cy="75" r="1.5" fill="#d4a853" style="animation: particle-glow 1.8s ease-in-out 0.6s infinite"/>
+        <circle cx="105" cy="80" r="1" fill="#fbbf24" style="animation: particle-glow2 2.2s ease-in-out 0.2s infinite"/>
+        <circle cx="130" cy="65" r="1.5" fill="#d4a853" style="animation: particle-glow 2.7s ease-in-out 0.9s infinite"/>
+        <circle cx="155" cy="50" r="1" fill="#fbbf24" style="animation: particle-glow2 1.9s ease-in-out 0.5s infinite"/>
+        <circle cx="175" cy="40" r="1.5" fill="#d4a853" style="animation: particle-glow 2.3s ease-in-out 0.7s infinite"/>
+        <circle cx="195" cy="30" r="1" fill="#fbbf24" style="animation: particle-glow2 2.1s ease-in-out 1s infinite"/>
+        <circle cx="15" cy="170" r="1" fill="#fbbf24" style="animation: particle-glow 2.8s ease-in-out 0.4s infinite"/>
+        <circle cx="210" cy="90" r="1.2" fill="#d4a853" style="animation: particle-glow2 2.4s ease-in-out 0.15s infinite"/>
+
+        <!-- "+" symbols (rising prices) -->
+        <text x="50" y="72" font-size="10" fill="#fbbf24" opacity="0.7" style="animation: particle-glow 2.6s ease-in-out 0.5s infinite">+</text>
+        <text x="90" y="55" font-size="8" fill="#fbbf24" opacity="0.5" style="animation: particle-glow2 2.2s ease-in-out 1s infinite">+</text>
+        <text x="140" y="45" font-size="9" fill="#fbbf24" opacity="0.6" style="animation: particle-glow 3s ease-in-out 0.3s infinite">+</text>
+        <text x="170" y="28" font-size="10" fill="#fbbf24" opacity="0.8" style="animation: particle-glow2 2.5s ease-in-out 0.8s infinite">+</text>
+
+        <!-- "涨停" main label -->
+        <text x="110" y="195" text-anchor="middle" font-size="16" font-weight="700"
+              fill="#d4a853" filter="url(#goldGlow)" letter-spacing="6"
+              style="animation: text-pulse 2s ease-in-out infinite">涨停</text>
+
+        <!-- "牛" accent -->
+        <text x="65" y="195" text-anchor="middle" font-size="11" font-weight="600"
+              fill="#ef4444" opacity="0.7" letter-spacing="2">牛</text>
+
+        <!-- "↑" arrows -->
+        <text x="185" y="22" text-anchor="middle" font-size="12" fill="#fbbf24" opacity="0.8"
+              style="animation: particle-glow 2s ease-in-out 0.5s infinite" filter="url(#goldGlow)">↑</text>
+        <text x="20" y="25" text-anchor="middle" font-size="10" fill="#ef4444" opacity="0.6"
+              style="animation: particle-glow2 2.5s ease-in-out 0.2s infinite">↑</text>
+
+        <!-- Bottom decorative line -->
+        <line x1="40" y1="210" x2="180" y2="210" stroke="rgba(212,168,83,0.3)" stroke-width="0.5"/>
+      </svg>
+    </div>
+
+    <div class="song-info">
+      <div class="song-name">江南 · 站在光里</div>
+      <div class="song-artist">科技长牛🐂</div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progressBar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="time-display">
+        <span id="currentTime">00:00</span>
+        <span id="totalTime">00:00</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="ctrl-btn" id="rewindBtn" title="后退10秒">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="1 4 1 10 7 10"></polyline>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+          <text x="13" y="15" fill="currentColor" stroke="none" font-size="7" font-weight="bold">10</text>
+        </svg>
+      </button>
+      <button class="ctrl-btn play-btn" id="playBtn">
+        <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="6,3 20,12 6,21"></polygon>
+        </svg>
+        <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor" style="display:none">
+          <rect x="5" y="3" width="5" height="18" rx="1"></rect>
+          <rect x="14" y="3" width="5" height="18" rx="1"></rect>
+        </svg>
+      </button>
+      <button class="ctrl-btn" id="forwardBtn" title="前进10秒">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="23 4 23 10 17 10"></polygon>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          <text x="7" y="15" fill="currentColor" stroke="none" font-size="7" font-weight="bold">10</text>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="lyrics-panel" id="lyricsPanel">
+    <div class="lyrics-scroll" id="lyricsScroll"></div>
+  </div>
+</div>
+
+<script>
+// Parsed lyrics from SRT (江南股市版) — synced with manually corrected SRT
+const TOTAL_DURATION = 83.799;
+const lyrics = [
+  { start: 2.279, end: 9.000, text: "刚到股市就赚钱 牵住韭菜的思念" },
+  { start: 10.120, end: 17.000, text: "同花顺里面学K线 缠着韭菜流连牛市间" },
+  { start: 18.339, end: 25.000, text: "套在盘里就是缘 缘分挂在分时线上面" },
+  { start: 26.200, end: 33.000, text: "涨有万分之一点 宁愿我就套在这里面" },
+  { start: 34.619, end: 41.619, text: "选选看看选选 涨涨跌跌涨涨的我 绿绿红红的线" },
+  { start: 41.619, end: 48.000, text: "生气的温柔 埋怨的温柔的脸" },
+  { start: 49.420, end: 57.000, text: "不懂涨跌盈亏煎熬的我们 都以为牛市就像风刮的金钱" },
+  { start: 57.560, end: 65.280, text: "跌停那一天 抵过永远 在这一刹那冻结了时间" },
+  { start: 65.280, end: 73.439, text: "不懂怎么止盈落袋的我们 还以为被套只是股市的传言" },
+  { start: 73.439, end: 77.439, text: "割肉能有多痛 痛有多浓" },
+  { start: 77.959, end: 83.799, text: "当钱被埋在大盘牛市中 都亏了才懂" }
+];
+
+// Audio
+const audio = new Audio('江南股市版.mp3');
+audio.preload = 'auto';
+
+// DOM refs
+const playBtn = document.getElementById('playBtn');
+const playIcon = document.getElementById('playIcon');
+const pauseIcon = document.getElementById('pauseIcon');
+const progressBar = document.getElementById('progressBar');
+const progressFill = document.getElementById('progressFill');
+const currentTimeEl = document.getElementById('currentTime');
+const totalTimeEl = document.getElementById('totalTime');
+const lyricsScroll = document.getElementById('lyricsScroll');
+const rewindBtn = document.getElementById('rewindBtn');
+const forwardBtn = document.getElementById('forwardBtn');
+
+// Build lyric DOM
+lyrics.forEach((lyric, i) => {
+  const div = document.createElement('div');
+  div.className = 'lyric-line';
+  div.textContent = lyric.text;
+  div.dataset.index = i;
+  lyricsScroll.appendChild(div);
+});
+
+const lyricEls = lyricsScroll.querySelectorAll('.lyric-line');
+fitLyricLines();
+window.addEventListener('resize', fitLyricLines);
+
+function fitLyricLines() {
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
+  const vw = window.innerWidth;
+  const activeSize = vw <= 380
+    ? Math.max(16.5, Math.min(18, vw * 0.0442))
+    : Math.max(17, Math.min(19, vw * 0.0465));
+  let measure = document.getElementById('lyricMeasure');
+  if (!measure) {
+    measure = document.createElement('span');
+    measure.id = 'lyricMeasure';
+    measure.style.cssText = 'position:fixed;left:-9999px;top:-9999px;white-space:nowrap;visibility:hidden;pointer-events:none;';
+    document.body.appendChild(measure);
+  }
+  lyricEls.forEach(el => {
+    el.style.removeProperty('--active-font-size');
+    el.style.removeProperty('--lyric-fit-scale');
+    if (!isMobile) return;
+
+    const wasActive = el.classList.contains('active');
+    el.classList.add('active');
+    const cs = getComputedStyle(el);
+    measure.textContent = el.textContent;
+    measure.style.fontFamily = cs.fontFamily;
+    measure.style.fontWeight = '600';
+    measure.style.fontSize = activeSize + 'px';
+    measure.style.letterSpacing = '0px';
+    const available = el.clientWidth - 4;
+    const natural = measure.getBoundingClientRect().width + 4;
+    if (natural > available) {
+      const ratio = available / natural;
+      const scale = Math.max(0.82, Math.min(1, ratio));
+      el.style.setProperty('--lyric-fit-scale', scale.toFixed(3));
+      if (ratio < 0.82) {
+        const target = Math.max(16.5, activeSize * ratio / 0.82);
+        el.style.setProperty('--active-font-size', `${target.toFixed(2)}px`);
+      }
+    }
+    if (!wasActive) el.classList.remove('active');
+  });
+}
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function updateProgress() {
+  const pct = (audio.currentTime / audio.duration) * 100 || 0;
+  progressFill.style.width = pct + '%';
+  currentTimeEl.textContent = formatTime(audio.currentTime);
+}
+
+function updateLyrics() {
+  const t = audio.currentTime;
+  let activeIdx = -1;
+
+  for (let i = 0; i < lyrics.length; i++) {
+    if (t >= lyrics[i].start && t <= lyrics[i].end) {
+      activeIdx = i;
+      break;
+    }
+    if (t < lyrics[i].start) break;
+  }
+
+  lyricEls.forEach((el, i) => {
+    el.classList.remove('active', 'past');
+    if (i < activeIdx) el.classList.add('past');
+    if (i === activeIdx) {
+      el.classList.add('active');
+      // Smooth scroll to active lyric
+      const panel = document.getElementById('lyricsPanel');
+      const panelHeight = panel.clientHeight;
+      const elTop = el.offsetTop;
+      const scrollTop = elTop - panelHeight * 0.4;
+      lyricsScroll.scrollTo({ top: scrollTop, behavior: 'smooth' });
+    }
+  });
+}
+
+function seekTo(e) {
+  const rect = progressBar.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  audio.currentTime = pct * audio.duration;
+}
+
+// Events
+audio.addEventListener('loadedmetadata', () => {
+  totalTimeEl.textContent = formatTime(audio.duration || TOTAL_DURATION);
+});
+
+audio.addEventListener('timeupdate', () => {
+  updateProgress();
+  updateLyrics();
+});
+
+audio.addEventListener('play', () => {
+  playIcon.style.display = 'none';
+  pauseIcon.style.display = 'block';
+});
+
+audio.addEventListener('pause', () => {
+  playIcon.style.display = 'block';
+  pauseIcon.style.display = 'none';
+});
+
+audio.addEventListener('ended', () => {
+  playIcon.style.display = 'block';
+  pauseIcon.style.display = 'none';
+  // Reset lyrics
+  lyricEls.forEach(el => el.classList.remove('active', 'past'));
+  lyricsScroll.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+playBtn.addEventListener('click', () => {
+  if (audio.paused) {
+    audio.play().catch(() => {});
+  } else {
+    audio.pause();
+  }
+});
+
+progressBar.addEventListener('click', seekTo);
+
+rewindBtn.addEventListener('click', () => {
+  audio.currentTime = Math.max(0, audio.currentTime - 10);
+});
+
+forwardBtn.addEventListener('click', () => {
+  audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
+});
+
+// Keyboard controls
+document.addEventListener('keydown', (e) => {
+  switch(e.code) {
+    case 'Space':
+      e.preventDefault();
+      audio.paused ? audio.play().catch(()=>{}) : audio.pause();
+      break;
+    case 'ArrowLeft':
+      audio.currentTime = Math.max(0, audio.currentTime - 5);
+      break;
+    case 'ArrowRight':
+      audio.currentTime = Math.min(audio.duration, audio.currentTime + 5);
+      break;
+  }
+});
+
+// Initial
+updateProgress();
+</script>
+</body>
+</html>
